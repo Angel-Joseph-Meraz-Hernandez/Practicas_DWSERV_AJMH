@@ -7,8 +7,10 @@ import java.util.Optional;
 import mx.edu.backendacademico.domain.Alumno;
 import mx.edu.backendacademico.exception.MatriculaDuplicadaException;
 import org.springframework.stereotype.Repository;
+import org.springframework.context.annotation.Profile;
 
 @Repository
+@Profile("!jpa")
 public class AlumnoRepositoryEnMemoria implements AlumnoRepository {
     private final Map<Long, Alumno> datos = new LinkedHashMap<>();
     private long secuencia;
@@ -17,13 +19,13 @@ public class AlumnoRepositoryEnMemoria implements AlumnoRepository {
     public synchronized Alumno guardar(Alumno alumno) {
         // 1. Un mismo monitor protege comprobación y escritura como una operación.
         boolean duplicado = datos.values().stream().anyMatch(actual ->
-            actual.matricula().equals(alumno.matricula()) &&
-            !actual.id().equals(alumno.id()));
+                actual.matricula().equals(alumno.matricula()) &&
+                        !actual.id().equals(alumno.id()));
         if (duplicado) throw new MatriculaDuplicadaException(alumno.matricula());
         // 2. El incremento comparte el monitor; no necesita un AtomicLong adicional.
         long id = alumno.id() == null ? ++secuencia : alumno.id();
         var guardado = new Alumno(id, alumno.matricula(), alumno.nombre(),
-                                  alumno.correo(), alumno.estatus());
+                alumno.correo(), alumno.estatus());
         datos.put(id, guardado);
         return guardado;
     }

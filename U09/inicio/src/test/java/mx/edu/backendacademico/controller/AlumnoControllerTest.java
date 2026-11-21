@@ -34,7 +34,7 @@ class AlumnoControllerTest {
                             {"matricula": "A9", "nombre": "Grace", "correo": "grace@u.mx"}""")).andExpect(header()
                 .string("Location", "/api/v1/alumnos/9"));
     }
-    
+
     @Test void listarDevuelveJson() throws Exception {
         when(service.listar()).thenReturn(List.of(new Alumno(1L,"A1","Ada","ada@u.mx",EstatusAlumno.ACTIVO)));
         mvc.perform(get("/api/v1/alumnos")).andExpect(status().isOk()).andExpect(jsonPath("$[0].matricula").value("A1"));

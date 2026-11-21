@@ -11,11 +11,29 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.http.MediaType;
 @WebMvcTest(AlumnoController.class)
 @AutoConfigureMockMvc(addFilters=false)
 class AlumnoControllerTest {
     @Autowired MockMvc mvc;
     @MockitoBean AlumnoService service;
+    @Test
+    void crearDevuelve201Created() throws Exception {
+        when(service.crear("A9", "Grace", "grace@u.mx"))
+                .thenReturn(new Alumno(9L, "A9", "Grace", "grace@u.mx", EstatusAlumno.ACTIVO));
+        mvc.perform(post("/api/v1/alumnos").contentType(MediaType.APPLICATION_JSON).content("""
+                            {"matricula": "A9", "nombre": "Grace", "correo": "grace@u.mx"}""")).andExpect(status().isCreated());
+    }
+    @Test
+    void crearDevuelveLocationCorrecto() throws Exception {
+        when(service.crear("A9", "Grace", "grace@u.mx"))
+                .thenReturn(new Alumno(9L, "A9", "Grace", "grace@u.mx", EstatusAlumno.ACTIVO));
+        mvc.perform(post("/api/v1/alumnos").contentType(MediaType.APPLICATION_JSON).content("""
+                            {"matricula": "A9", "nombre": "Grace", "correo": "grace@u.mx"}""")).andExpect(header()
+                .string("Location", "/api/v1/alumnos/9"));
+    }
     @Test void listarDevuelveJson() throws Exception {
         when(service.listar()).thenReturn(List.of(new Alumno(1L,"A1","Ada","ada@u.mx",EstatusAlumno.ACTIVO)));
         mvc.perform(get("/api/v1/alumnos")).andExpect(status().isOk()).andExpect(jsonPath("$[0].matricula").value("A1"));

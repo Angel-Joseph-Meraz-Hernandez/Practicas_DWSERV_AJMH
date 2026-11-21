@@ -11,9 +11,20 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import org.springframework.security.access.AccessDeniedException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ProblemDetail accesoDenegado(AccessDeniedException ex) {
+        return problema(
+                HttpStatus.FORBIDDEN,
+                "ACCESO_DENEGADO",
+                "No tienes permiso para consultar este recurso"
+        );
+    }
 
     @ExceptionHandler(AlumnoNoEncontradoException.class)
     ProblemDetail noEncontrado(AlumnoNoEncontradoException ex) {

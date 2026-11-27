@@ -19,12 +19,18 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import mx.edu.backendacademico.service.IdempotenciaAlumnoService;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @RestController
 @RequestMapping("/api/v1/alumnos")
 public class AlumnoController {
     private final AlumnoService service;
-    public AlumnoController(AlumnoService service) { this.service = service; }
+    private final IdempotenciaAlumnoService idempotenciaService;
+    public AlumnoController(AlumnoService service, IdempotenciaAlumnoService idempotenciaService) {
+        this.service = service;
+        this.idempotenciaService = idempotenciaService;
+    }
 
     // GET consulta sin solicitar cambios de estado de negocio.
     @GetMapping
@@ -36,9 +42,9 @@ public class AlumnoController {
 
     // El servicio asigna identidad; ResponseEntity publica 201 y Location.
     @PostMapping
-    public ResponseEntity<AlumnoResponse> crear(@RequestBody @Valid CrearAlumnoRequest request) {
-        var creado = service.crear(request.matricula(), request.nombre(), request.correo());
-        return ResponseEntity.created(URI.create("/api/v1/alumnos/" + creado.id())).body(AlumnoMapper.toResponse(creado));
+    public ResponseEntity<AlumnoResponse> crear(@RequestHeader("Idempotency-Key") String clave,
+            @RequestBody @Valid CrearAlumnoRequest request) {
+        return idempotenciaService.crear(clave, request);
     }
 
     // PUT sustituye todos los campos de la representación editable.
